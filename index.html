@@ -1,0 +1,72 @@
+options: ["Ничек хәлләр?", "Исемең ничек?", "Рәхмәт"],
+        correct: 0
+      }
+    ];
+
+    let currentQ = 0;
+    let hearts = 5;
+    let streak = 3;
+
+    document.getElementById('streak').innerText = streak;
+
+    function renderQuestion() {
+      if (currentQ >= questions.length) {
+        // Урок завершен
+        document.getElementById('progress').style.width = '100%';
+        document.getElementById('quiz-card').innerHTML = `
+          <h2>Искиткеч! 🎉</h2>
+          <p>Вы успешно прошли урок по татарскому языку!</p>
+          <button class="btn-option correct" onclick="location.reload()" style="margin-top: 20px;">Пройти снова</button>
+        `;
+        return;
+      }
+
+      const q = questions[currentQ];
+      document.getElementById('target-word').innerText = q.ru;
+      
+      // Обновление полосы прогресса
+      document.getElementById('progress').style.width = `${(currentQ / questions.length) * 100}%`;
+
+      const container = document.getElementById('options-container');
+      container.innerHTML = '';
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-option';
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(btn, idx === q.correct);
+        container.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(btn, isCorrect) {
+      const buttons = document.querySelectorAll('.btn-option');
+      buttons.forEach(b => b.style.pointerEvents = 'none'); // Блокируем повторные нажатия
+
+      if (isCorrect) {
+        btn.classList.add('correct');
+        setTimeout(() => {
+          currentQ++;
+          renderQuestion();
+        }, 800);
+      } else {
+        btn.classList.add('wrong');
+        hearts--;
+        document.getElementById('hearts').innerText = hearts;
+
+        if (hearts <= 0) {
+          alert('❤️ Жизни закончились! Оформите PRO-подписку, чтобы продолжить обучение без ограничений.');
+        } else {
+          setTimeout(() => {
+            buttons.forEach(b => b.style.pointerEvents = 'auto');
+            btn.classList.remove('wrong');
+          }, 800);
+        }
+      }
+    }
+
+    // Запуск первого вопроса
+    renderQuestion();
+  </script>
+</body>
+</html>
