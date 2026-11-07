@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Мои подписки — напоминания об окончании</title>
+  <meta name="description" content="Напоминания об окончании платных подписок: Иви, Netflix, Яндекс Плюс и другие. Уведомления в Telegram за несколько дней до окончания.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏰</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div id="demo-banner" class="demo-banner hidden">👀 Демо-данные для предпросмотра — ничего не сохраняется</div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">⏰</div>
+      <div class="brand-text">
+        <h1>Мои подписки</h1>
+        <div class="subtitle">не дадим забыть об окончании</div>
+      </div>
+    </div>
+    <div class="server-dot off" id="server-badge" title="Локальный сервер: проверяю…"></div>
+  </header>
+
+  <section class="quick-add">
+    <input id="quick-input" type="text"
+      placeholder="Например: Иви через 30 дней, 399 ₽ в месяц"
+      autocomplete="off" spellcheck="false">
+    <button id="quick-add-btn" class="btn primary">＋ Добавить</button>
+    <button id="open-form-btn" class="btn ghost" title="Добавить через форму">📝</button>
+  </section>
+  <div class="hint">
+    Понимаю фразы: «иви через 30 дней» · «netflix до 15 декабря» · «яндекс плюс 299 ₽ ежемесячно, напомни за 3 дня»
+  </div>
+
+  <nav class="tabs">
+    <button class="tab active" data-view="list">📋 Список</button>
+    <button class="tab" data-view="calendar">📅 Календарь</button>
+    <button class="tab" data-view="catalog">🌐 Каталог</button>
+    <button class="tab" data-view="settings">⚙️ Настройки</button>
+  </nav>
+
+  <main>
+    <!-- ===== СПИСОК ===== -->
+    <section id="view-list" class="view">
+      <div class="stats" id="stats"></div>
+      <div id="list" class="list"></div>
+    </section>
+
+    <!-- ===== КАЛЕНДАРЬ ===== -->
+    <section id="view-calendar" class="view hidden">
+      <div class="cal-head">
+        <button class="btn ghost square" id="cal-prev">‹</button>
+        <div class="cal-title" id="cal-title"></div>
+        <button class="btn ghost square" id="cal-next">›</button>
+        <button class="btn ghost" id="cal-today">Сегодня</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <span><i class="dot ok"></i> всё в порядке</span>
+        <span><i class="dot soon"></i> скоро закончится</span>
+        <span><i class="dot urgent"></i> срочно</span>
+        <span><i class="dot expired"></i> закончилась</span>
+      </div>
+      <div id="cal-month-list" class="cal-month-list"></div>
+    </section>
+
+    <!-- ===== КАТАЛОГ СЕРВИСОВ ===== -->
+    <section id="view-catalog" class="view hidden">
+      <div id="catalog" class="catalog"></div>
+    </section>
+
+    <!-- ===== НАСТРОЙКИ ===== -->
+    <section id="view-settings" class="view hidden">
+      <div class="settings-card">
+        <h2>✈️ Telegram-уведомления</h2>
+        <p class="muted">За выбранное число дней до окончания подписки придёт сообщение в Telegram.</p>
+        <ol class="steps">
+          <li>В Telegram откройте <b>@BotFather</b>, команда <code>/newbot</code> — создайте бота и скопируйте токен.</li>
+          <li>Вставьте токен ниже и нажмите <b>Сохранить</b>.</li>
+          <li>Напишите своему боту <code>/start</code>, затем нажмите <b>Определить</b> — chat_id подставится сам.</li>
+          <li>Проверьте связь кнопкой <b>Отправить тест</b>.</li>
+        </ol>
+        <label class="field">Токен бота
+          <input id="s-token" type="password" placeholder="123456789:AAH…" autocomplete="off">
+        </label>
+        <div class="row">
+          <label class="field grow">Chat ID
+            <input id="s-chatid" type="text" placeholder="123456789" autocomplete="off">
+          </label>
+          <button class="btn ghost" id="s-detect">🔍 Определить</button>
+        </div>
+        <p class="muted" style="margin:-6px 0 12px">Не определяется? Открой в Telegram <b>@userinfobot</b> → кнопка <b>Start</b> → он пришлёт твой ID. Скопируй число и вставь сюда вручную.</p>
+        <div class="row">
+          <button class="btn primary" id="s-save">💾 Сохранить</button>
+          <button class="btn ghost" id="s-test">📨 Отправить тест</button>
+        </div>
+        <div class="server-status" id="server-status">…</div>
+      </div>
+
+      <div class="settings-card">
+        <h2>🌐 Каталог сервисов — администрирование</h2>
+        <p class="muted">Клиенты присылают боту ссылку, оплачивают 30 ⭐/мес — ссылка публикуется автоматически. Здесь можно посмотреть и удалить публикации.</p>
+        <div id="admin-catalog"></div>
+      </div>
+
+      <div class="settings-card">
+        <h2>🔔 Напоминание по умолчанию</h2>
+        <label class="field">Напоминать за
+          <select id="s-default-remind" class="select"></select>
+          до окончания (для новых подписок)
+        </label>
+      </div>
+
+      <div class="settings-card">
+        <h2>🗂️ Данные</h2>
+        <div class="row">
+          <button class="btn ghost" id="s-export">⬇️ Экспорт JSON</button>
+          <button class="btn ghost" id="s-import">⬆️ Импорт JSON</button>
+          <input type="file" id="s-import-file" accept=".json,application/json" class="hidden">
+          <button class="btn danger" id="s-clear">🗑️ Очистить всё</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== МОДАЛЬНОЕ ОКНО ФОРМЫ ===== -->
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <h2 id="modal-title">Новая подписка</h2>
+      <label class="field">Название
+        <input id="f-name" type="text" placeholder="Иви">
+      </label>
+      <label class="field">Дата окончания
+        <input id="f-date" type="date">
+      </label>
+      <div class="row">
+        <label class="field grow">Период
+          <select id="f-period" class="select">
+            <option value="once">Разовая</option>
+            <option value="monthly">Ежемесячная</option>
+            <option value="yearly">Ежегодная</option>
+          </select>
+        </label>
+        <label class="field grow">Цена, ₽
+          <input id="f-price" type="number" min="0" step="0.01" placeholder="399">
+        </label>
+      </div>
+      <label class="field">Напомнить за
+        <select id="f-remind" class="select"></select>
+      </label>
+      <label class="field">Иконка</label>
+      <div id="emoji-picker" class="emoji-picker"></div>
+      <div id="form-hint" class="form-hint" style="display:none"></div>
+      <div class="modal-actions">
+        <button class="btn ghost" id="f-cancel">Отмена</button>
+        <button class="btn primary" id="f-save">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="parser.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
